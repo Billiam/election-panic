@@ -49,7 +49,7 @@ App.formatLine = function(label, diff={}) {
 
   if (diff.new) {
     let val = `${label}: ${f.format(diff.new)}`;
-    if (diff.old > 0) {
+    if (diff.old != 0) {
       const difference = diff.new - diff.old;
       val += ` <span class="diff">(${difference < 0 ? '' : '+'}${f.format(diff.new - diff.old)})`
     }
