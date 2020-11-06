@@ -18,7 +18,7 @@ App.fetchDiff = function() {
     .then(App.render)
     .catch(error => console.error(error))
     .then(result => {
-      setTimeout(App.fetchDiff, 2*60*1000)
+      setTimeout(App.fetchDiff, 30*1000)
     })
 }
 
@@ -32,6 +32,7 @@ App.render = function(result) {
     li.innerHTML = row + [
     App.formatLine("Biden", res.biden),
       App.formatLine("Trump", res.trump),
+      App.formatLine("Diff", res.difference),
       App.formatLine("Total Votes", res.count),
       App.formatLine("Percent Reporting", res.reporting),
     ].filter(r => r).join(", ")
@@ -49,7 +50,8 @@ App.formatLine = function(label, diff={}) {
   if (diff.new) {
     let val = `${label}: ${f.format(diff.new)}`;
     if (diff.old > 0) {
-      val += ` <span class="diff">(+${f.format(diff.new - diff.old)})`
+      const difference = diff.new - diff.old;
+      val += ` <span class="diff">(${difference < 0 ? '' : '+'}${f.format(diff.new - diff.old)})`
     }
     return val;
   }
@@ -66,15 +68,20 @@ let Result = class {
   static parse(data) {
     return Object.fromEntries(
       data.filter(state => Result.STATES.has(state.stateAbbreviation))
-        .map(state => [
-            state.stateAbbreviation,
-            {
-              biden: state.candidates.find(candidate => candidate.lastNameSlug === "biden").voteNum,
-              trump: state.candidates.find(candidate => candidate.lastNameSlug === "trump").voteNum,
-              count: state.totalVote,
-              reporting: state.percentReporting
-            }
-          ]
+        .map(state => {
+            const biden = state.candidates.find(candidate => candidate.lastNameSlug === "biden").voteNum;
+            const trump = state.candidates.find(candidate => candidate.lastNameSlug === "trump").voteNum;
+            return [
+              state.stateAbbreviation,
+              {
+                biden: biden,
+                trump: trump,
+                difference: biden - trump,
+                count: state.totalVote,
+                reporting: state.percentReporting
+              }
+            ]
+          }
         )
     )
   }
